@@ -22,7 +22,9 @@ A VR factory simulation built with Unity and the XR Interaction Toolkit. Generat
 
 7. **View generator info.** Press the configured toggle button to bring up the `GeneratorInfoBoard`, a floating HUD that shows the current effective production interval for every generator.
 
-8. **Win condition.** Fill all display boards to reveal all the letters.
+8. **Deploy new generators (optional).** Some areas of the factory have build stations — empty socket pedestals. Carry items to a build station and place them into the sockets. Once all sockets are filled, the items are consumed and a new generator activates, increasing overall production rate.
+
+9. **Win condition.** Fill all display boards to reveal all the letters.
 
 ### Controls
 
@@ -55,6 +57,10 @@ GameManager (singleton)
   ├── DisplayBoard
   │     accepts items via XRSocketInteractors
   │     filters by tag, reveals a letter when full
+  │
+  ├── BuildStation
+  │     accepts items via XRSocketInteractors
+  │     consumes items and activates a new AutoGenerator when full
   │
   └── GeneratorInfoBoard
         reads AutoGenerator stats and displays them
@@ -120,11 +126,37 @@ GameManager (singleton)
    | Field | Purpose |
    |---|---|
    | `toggleAction` | An `InputActionReference` (e.g. a button press) that toggles the board on/off |
-   | `generators` | Array of `AutoGenerator` references to display stats for |
+   | `generators` | List of `AutoGenerator` references to display stats for (new generators can be added at runtime via `RegisterGenerator`) |
+   | `buildStations` | *(Optional)* List of `BuildStation` references to show deployment progress |
    | `distanceFromPlayer` | How far in front of the camera the floating board appears |
    | `boardSize` / `fontSize` | Visual dimensions of the auto-generated world-space canvas |
 
 3. The board creates its own Canvas + TMP_Text at runtime — no manual UI setup needed.
+
+### How to Add a Build Station
+
+A build station lets the player spend items to deploy a new generator, increasing production rate.
+
+1. **Pre-place the generator** you want to deploy. Create a fully configured `AutoGenerator` GameObject in the scene (with item prefab, spawn point, boost slots, etc.) and **disable the GameObject** (uncheck the checkbox at the top of the Inspector).
+
+2. **Pre-wire the Store.** On the Store's `ItemSlot` list, add a new entry for the disabled generator — set the `itemTag`, drag the generator into `generator`, and assign delivery point Transforms. The Store will sit idle for this slot until the generator activates.
+
+3. **Create the build station GameObject** in the scene.
+
+4. **Add `XRSocketInteractor` children** — one per item the station should require (e.g. 3 sockets = costs 3 items).
+
+5. **Add the `BuildStation` component** and configure:
+
+   | Field | Purpose |
+   |---|---|
+   | `slots` | The `XRSocketInteractor` children you just created |
+   | `allowedItemTag` | The Unity tag of items accepted as payment. Leave empty to accept any item. |
+   | `targetGenerator` | The disabled generator GameObject to activate when complete |
+   | `infoBoard` | *(Optional)* Reference to the `GeneratorInfoBoard` so the new generator appears on the HUD automatically |
+
+6. The build station implements `IXRSelectFilter` and registers itself on each socket, so only items with the matching tag can be placed. When all sockets are filled, items are destroyed and the generator GameObject is activated.
+
+7. *(Optional)* On the `GeneratorInfoBoard`, add the build station to the `buildStations` list to show placement progress on the HUD.
 
 ### How to Add a New Store
 
@@ -147,6 +179,7 @@ GameManager (singleton)
 | `Store` | `OnItemPickedUp` | `GameObject` | A player picks up an item |
 | `DisplayBoard` | `OnBoardCompleted` | — | All slots filled |
 | `DisplayBoard` | `OnBoardIncomplete` | — | A slot emptied after being complete |
+| `BuildStation` | `OnGeneratorDeployed` | — | All slots filled, items consumed, generator activated |
 | `Item` | `OnStateChanged` | `Item, ItemState` | Item state transition (Created → InStore → Held → Released) |
 
 ### Project Structure
@@ -159,6 +192,7 @@ Assets/Scripts/
 │   └── Item.cs                 Grabbable item with state machine
 ├── Production/
 │   ├── AutoGenerator.cs        Timer-based item producer with boost slots
+│   ├── BuildStation.cs         Socket-based generator deployment station
 │   └── Store.cs                Multi-slot item storage + delivery
 ├── Display/
 │   ├── DisplayBoard.cs         Socket-based letter reveal board

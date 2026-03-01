@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -9,7 +10,10 @@ public class GeneratorInfoBoard : MonoBehaviour
     public InputActionReference toggleAction;
 
     [Header("Generators")]
-    [SerializeField] private AutoGenerator[] generators;
+    [SerializeField] private List<AutoGenerator> generators = new();
+
+    [Header("Build Stations")]
+    [SerializeField] private List<BuildStation> buildStations = new();
 
     [Header("Storage")]
     [SerializeField] private Store storage;
@@ -23,6 +27,12 @@ public class GeneratorInfoBoard : MonoBehaviour
     private TMP_Text infoText;
     private bool isVisible;
     private Transform playerCamera;
+
+    public void RegisterGenerator(AutoGenerator gen)
+    {
+        if (gen != null && !generators.Contains(gen))
+            generators.Add(gen);
+    }
 
     private void Start()
     {
@@ -107,6 +117,20 @@ public class GeneratorInfoBoard : MonoBehaviour
                 var slot = storage.GetSlotByIndex(i);
                 if (slot == null) continue;
                 sb.AppendLine($"{slot.itemTag}: {slot.Count} / {slot.Capacity}");
+            }
+        }
+
+        if (buildStations != null && buildStations.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("<b>Build Stations</b>");
+
+            for (int i = 0; i < buildStations.Count; i++)
+            {
+                var bs = buildStations[i];
+                if (bs == null) continue;
+                string status = bs.Deployed ? "BUILT" : $"{bs.FilledSlots} / {bs.RequiredSlots}";
+                sb.AppendLine($"Station {i + 1}: {status}");
             }
         }
 

@@ -32,6 +32,11 @@ public class AutoGenerator : MonoBehaviour
     [SerializeField] private bool requireSlotToStart;
     [SerializeField] private float speedBoostPerSlot = 0.5f;
 
+    [Header("Socket Visual Feedback")]
+    [SerializeField] private Color socketedItemColor = Color.green;
+    [SerializeField] private bool useSocketedMaterial;
+    [SerializeField] private Material socketedMaterial;
+
     private float timer = 0f;
     private bool isProducing;
     private int filledSlots = 0;
@@ -193,6 +198,7 @@ public class AutoGenerator : MonoBehaviour
     private void OnSlotFilled(SelectEnterEventArgs args)
     {
         filledSlots = CountFilledSlots();
+        ApplySocketedVisual(args.interactableObject);
         Debug.Log($"[AutoGenerator:{itemName}] Slot filled ({filledSlots}/{slots.Length})");
     }
 
@@ -200,6 +206,19 @@ public class AutoGenerator : MonoBehaviour
     {
         filledSlots = CountFilledSlots();
         Debug.Log($"[AutoGenerator:{itemName}] Slot emptied ({filledSlots}/{slots.Length})");
+    }
+
+    private void ApplySocketedVisual(IXRSelectInteractable interactable)
+    {
+        if (interactable == null) return;
+
+        var renderer = interactable.transform.GetComponentInChildren<Renderer>();
+        if (renderer == null) return;
+
+        if (useSocketedMaterial && socketedMaterial != null)
+            renderer.material = socketedMaterial;
+        else
+            renderer.material.color = socketedItemColor;
     }
 
     private int CountFilledSlots()
@@ -212,4 +231,5 @@ public class AutoGenerator : MonoBehaviour
         }
         return count;
     }
+    
 }
