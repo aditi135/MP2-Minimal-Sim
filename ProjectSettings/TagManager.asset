@@ -6,6 +6,7 @@ TagManager:
   tags:
   - GreenSample
   - CyanSample
+  - RedSample
   layers:
   - Default
   - TransparentFX
