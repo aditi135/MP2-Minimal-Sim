@@ -1,5 +1,7 @@
 # MP2-Minimal-Sim
 
+Developers: Runying Chen, Haochen Tong, Aditi Kumar
+
 A VR factory simulation built with Unity and the XR Interaction Toolkit. Generators produce items on a timer, a store collects and serves them at delivery sockets, and the player grabs items and places them onto display boards to reveal letters.
 
 ---
