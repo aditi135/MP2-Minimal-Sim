@@ -232,5 +232,9 @@ public class AutoGenerator : MonoBehaviour
         return count;
     }
 
+    public void ManualProduce()
+    {
+        ProduceItem();
+    }
     
 }

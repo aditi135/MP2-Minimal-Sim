@@ -7,6 +7,7 @@ TagManager:
   - GreenSample
   - CyanSample
   - RedSample
+  - PlayerHand
   layers:
   - Default
   - TransparentFX
